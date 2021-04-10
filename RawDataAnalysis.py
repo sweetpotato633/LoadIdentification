@@ -8,8 +8,10 @@ import matplotlib as mpl
 
 sample_per_wave = 128
 average_window = 8
-vol_coeff = 356610720
-cur_coeff = 59615184
+#vol_coeff = 356610720
+vol_coeff = 178305360
+#重新标定过 2021.4.9
+cur_coeff = 596151
 
 mpl.rcParams["font.sans-serif"]=["SimHei"]
 mpl.rcParams["axes.unicode_minus"]=False
@@ -106,23 +108,29 @@ def calc_power(vol,cur):
     #FFT
     i_fft_array = np.abs(np.fft.fft(i_rms_array,axis=1))
     i_fft_array = np.fft.fftshift(i_fft_array,axes=(1,))
+    #plt.figure()
+    #xlabel = np.linspace(start=0, stop=3200, num=1280)
+    #plt.plot(xlabel,i_fft_array[1000,:])
 
+    #plt.show()
     amp_freq_array = i_fft_array[:,512::8]#抽取64次谐波分量
-
     for i in range(amp_freq_array.shape[0]):
-        if amp_freq_array[i,1] < 10:
+        if amp_freq_array[i,1] < 5:
             amp_freq_array[i, :] = 0
         else:
-            amp_freq_array[i,:] = amp_freq_array[i,:]/amp_freq_array[i,3]*100#计算谐波含量，相对于基波幅值
+            amp_freq_array[i,:] = amp_freq_array[i,:]/amp_freq_array[i,1]*100#计算谐波含量，相对于基波幅值
 
     #plt.figure()
     #plt.bar(x,amp_freq_array[1000,:])
     #plt.show()
 
     act_power = np.abs(np.sum(act_array1,axis=1)/window_size)
-    react_power = np.abs(np.sum(react_array1,axis=1)/window_size)
-    i_rms = np.sqrt(np.sum(i_rms_array**2,axis=1)/window_size)*100
-
+    act_power = act_power*100
+    #react_power = np.abs(np.sum(react_array1,axis=1)/window_size)
+    react_power = np.sum(react_array1, axis=1) / window_size
+    react_power = react_power*100
+    i_rms = np.sqrt(np.sum(i_rms_array**2,axis=1)/window_size)*100*2.97/4.3
+    i_rms = i_rms*100
     msg = "数据计算完毕，用时 {cost:.3f} 秒\n".format(cost=time.time()-start_time)
     print(msg)
     return act_power,react_power,i_rms,amp_freq_array
@@ -159,6 +167,7 @@ def main_process():
     plt.legend(['active','reactive','current 0.01A'])
 
     plt.figure()
+    plt.plot(x_time, har_array[offset:, 2], 'b--')
     plt.plot(x_time,har_array[offset:, 3], 'r')
     plt.plot(x_time,har_array[offset:, 4], 'c--')
     plt.plot(x_time,har_array[offset:, 5], 'b')
@@ -170,7 +179,8 @@ def main_process():
     plt.title('Harmonic')
     plt.xlabel('Seconds')
     plt.ylabel('谐波含量 %')
-    plt.legend(['3次','4次','5次','6次','7次','8次','9次','10次'])
+    plt.legend(['2次','3次','4次','5次','6次','7次','8次','9次','10次'])
+    #plt.legend(['3次', '4次', '5次', '6次', '7次', '8次', '9次', '10次'])
     plt.show()
 
 
