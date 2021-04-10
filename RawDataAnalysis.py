@@ -115,7 +115,7 @@ def calc_power(vol,cur):
     #plt.show()
     amp_freq_array = i_fft_array[:,512::8]#抽取64次谐波分量
     for i in range(amp_freq_array.shape[0]):
-        if amp_freq_array[i,1] < 5:
+        if amp_freq_array[i,1] < 5:#
             amp_freq_array[i, :] = 0
         else:
             amp_freq_array[i,:] = amp_freq_array[i,:]/amp_freq_array[i,1]*100#计算谐波含量，相对于基波幅值
